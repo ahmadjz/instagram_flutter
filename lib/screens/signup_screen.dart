@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instagram_flutter/resources/auth_methods.dart';
+import 'package:instagram_flutter/responsive/mobile_screen_layout.dart';
+import 'package:instagram_flutter/responsive/responsive_layout.dart';
+import 'package:instagram_flutter/responsive/web_screen_layout.dart';
+import 'package:instagram_flutter/screens/login_screen.dart';
 import 'package:instagram_flutter/utlis/colors.dart';
 import 'package:instagram_flutter/utlis/utils.dart';
 import 'package:instagram_flutter/widgets/text_field_input.dart';
@@ -40,23 +44,38 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void signUpUser() async {
+    // set loading to true
     setState(() {
       _isLoading = true;
     });
+
+    // signup user using our authmethodds
     String res = await AuthMethods().signUpUser(
         email: _emailController.text,
         password: _passwordController.text,
         username: _usernameController.text,
         bio: _bioController.text,
-        file: _image);
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (res != "success") {
-      showSnackBar(context, res);
+        file: _image!);
+    // if string returned is sucess, user has been created
+    if (res == "success") {
+      setState(() {
+        _isLoading = false;
+      });
+      // navigate to the home screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const ResponsiveLayout(
+            mobileScreenLayout: MobileScreenLayout(),
+            webScreenLayout: WebScreenLayout(),
+          ),
+        ),
+      );
     } else {
-      // nothing for now
+      setState(() {
+        _isLoading = false;
+      });
+      // show the error
+      showSnackBar(context, res);
     }
   }
 
@@ -90,7 +109,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       : const CircleAvatar(
                           radius: 64,
                           backgroundImage: NetworkImage(
-                              "https://divedigital.id/wp-content/uploads/2021/10/1-min.png")),
+                              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")),
                   Positioned(
                       bottom: -10,
                       left: 80,
@@ -170,7 +189,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: const Text("Don't have an account?"),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: const Text(
