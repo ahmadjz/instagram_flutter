@@ -8,6 +8,7 @@ import 'package:instagram_flutter/responsive/responsive_layout.dart';
 import 'package:instagram_flutter/responsive/web_screen_layout.dart';
 import 'package:instagram_flutter/screens/login_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
+import 'package:instagram_flutter/widgets/loading_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -61,7 +62,7 @@ class MyApp extends StatelessWidget {
             }
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child: CircularProgressIndicator(color: primaryColor),
+                child: LoadingScreen(),
               );
             }
             return const LoginScreen();

@@ -10,6 +10,7 @@ import 'package:instagram_flutter/responsive/web_screen_layout.dart';
 import 'package:instagram_flutter/screens/login_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
 import 'package:instagram_flutter/utils/utils.dart';
+import 'package:instagram_flutter/widgets/loading_screen.dart';
 import 'package:instagram_flutter/widgets/text_field_input.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -173,9 +174,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ? const Text(
                             'Sign up',
                           )
-                        : const CircularProgressIndicator(
-                            color: primaryColor,
-                          ),
+                        : const LoadingScreen(),
                   ),
                   onTap: () {
                     if (_image == null) {
