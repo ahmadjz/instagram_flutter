@@ -7,7 +7,7 @@ import 'package:instagram_flutter/responsive/mobile_screen_layout.dart';
 import 'package:instagram_flutter/responsive/responsive_layout.dart';
 import 'package:instagram_flutter/responsive/web_screen_layout.dart';
 import 'package:instagram_flutter/screens/login_screen.dart';
-import 'package:instagram_flutter/utlis/colors.dart';
+import 'package:instagram_flutter/utils/colors.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
