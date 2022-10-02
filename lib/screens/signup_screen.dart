@@ -36,12 +36,10 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void signUpUser() async {
-    // set loading to true
     setState(() {
       _isLoading = true;
     });
 
-    // signup user using our authmethodds
     String res = await AuthMethods().signUpUser(
       email: _emailController.text,
       password: _passwordController.text,
@@ -49,12 +47,11 @@ class _SignupScreenState extends State<SignupScreen> {
       bio: _bioController.text,
       file: _image!,
     );
-    // if string returned is sucess, user has been created
     if (res == "success") {
       setState(() {
         _isLoading = false;
       });
-      // navigate to the home screen
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const ResponsiveLayout(
@@ -67,14 +64,13 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() {
         _isLoading = false;
       });
-      // show the error
+      if (!mounted) return;
       showSnackBar(context, res);
     }
   }
 
   selectImage() async {
     Uint8List im = await pickImage(ImageSource.gallery);
-    // set state because we need to display the image we selected on the circle avatar
     setState(() {
       _image = im;
     });
