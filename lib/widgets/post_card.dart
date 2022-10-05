@@ -59,7 +59,6 @@ class _PostCardState extends State<PostCard> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const LoadingScreen();
               }
-              print(snapshot.data!.docs.length);
               return Container(
                 decoration: BoxDecoration(
                   border: Border.all(
