@@ -6,6 +6,7 @@ import 'package:instagram_flutter/resources/firestore_methods.dart';
 import 'package:instagram_flutter/screens/login_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
 import 'package:instagram_flutter/utils/utils.dart';
+import 'package:instagram_flutter/widgets/are_you_sure_dialog.dart';
 import 'package:instagram_flutter/widgets/follow_button.dart';
 import 'package:instagram_flutter/widgets/loading_screen.dart';
 
@@ -120,14 +121,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             textColor: primaryColor,
                                             borderColor: Colors.grey,
                                             onPressed: () async {
-                                              await AuthMethods().signOut();
-                                              Navigator.of(context)
-                                                  .pushReplacement(
-                                                MaterialPageRoute(
+                                              showDialog(
+                                                  barrierDismissible: false,
+                                                  context: context,
                                                   builder: (context) =>
-                                                      const LoginScreen(),
-                                                ),
-                                              );
+                                                      AreYouSureDialog(
+                                                        onSubmit: () async {
+                                                          await AuthMethods()
+                                                              .signOut();
+                                                          Navigator.of(context)
+                                                              .pushReplacement(
+                                                            MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  const LoginScreen(),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ));
                                             },
                                           )
                                         : isFollowing
