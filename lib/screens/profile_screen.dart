@@ -67,6 +67,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  void signOut() async {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AreYouSureDialog(
+              onSubmit: () async {
+                await AuthMethods().signOut();
+                if (!mounted) return;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                );
+              },
+            ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return isLoading
@@ -120,26 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 mobileBackgroundColor,
                                             textColor: primaryColor,
                                             borderColor: Colors.grey,
-                                            onPressed: () async {
-                                              showDialog(
-                                                  barrierDismissible: false,
-                                                  context: context,
-                                                  builder: (context) =>
-                                                      AreYouSureDialog(
-                                                        onSubmit: () async {
-                                                          await AuthMethods()
-                                                              .signOut();
-                                                          Navigator.of(context)
-                                                              .pushReplacement(
-                                                            MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  const LoginScreen(),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ));
-                                            },
-                                          )
+                                            onPressed: signOut)
                                         : isFollowing
                                             ? FollowButton(
                                                 text: 'Unfollow',
