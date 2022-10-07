@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_flutter/models/user.dart' as model;
+import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/providers/user_provider.dart';
 import 'package:instagram_flutter/resources/firestore_methods.dart';
 import 'package:instagram_flutter/screens/comments_screen.dart';
+import 'package:instagram_flutter/screens/profile_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
 import 'package:instagram_flutter/utils/global_variable.dart';
 import 'package:instagram_flutter/utils/utils.dart';
@@ -50,11 +52,8 @@ class _PostCardState extends State<PostCard> {
     return user?.uid == null
         ? const LoadingScreen()
         : StreamBuilder(
-            stream: FirebaseFirestore.instance
-                .collection('posts')
-                .doc(widget.snap['postId'])
-                .collection('comments')
-                .snapshots(),
+            stream: Provider.of<BackendStreamsAndFuturesProvider>(context)
+                .streamAllCommentsForPost(widget.snap['postId']),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const LoadingScreen();
@@ -78,37 +77,46 @@ class _PostCardState extends State<PostCard> {
                         vertical: 4,
                         horizontal: 16,
                       ).copyWith(right: 0),
-                      child: Row(
-                        children: <Widget>[
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundImage: NetworkImage(
-                              widget.snap['profImage'].toString(),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ProfileScreen(
+                              uid: widget.snap['uid'],
                             ),
                           ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                left: 8,
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundImage: NetworkImage(
+                                widget.snap['profImage'].toString(),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    widget.snap['username'].toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 8,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      widget.snap['username'].toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          widget.snap['uid'].toString() == user!.uid
-                              ? postOptionsDialog(context)
-                              : Container(),
-                        ],
+                            widget.snap['uid'].toString() == user!.uid
+                                ? postOptionsDialog(context)
+                                : Container(),
+                          ],
+                        ),
                       ),
                     ),
                     imageSection(user, context),

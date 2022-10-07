@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_flutter/models/user.dart';
+import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
+import 'package:instagram_flutter/providers/user_provider.dart';
 import 'package:instagram_flutter/resources/auth_methods.dart';
 import 'package:instagram_flutter/resources/firestore_methods.dart';
 import 'package:instagram_flutter/screens/login_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
-import 'package:instagram_flutter/utils/utils.dart';
 import 'package:instagram_flutter/widgets/are_you_sure_dialog.dart';
 import 'package:instagram_flutter/widgets/follow_button.dart';
 import 'package:instagram_flutter/widgets/loading_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
@@ -24,48 +27,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int followers = 0;
   int following = 0;
   bool isFollowing = false;
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    getData();
-  }
-
-  getData() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      var userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.uid)
-          .get();
-
-      // get post lENGTH
-      var postSnap = await FirebaseFirestore.instance
-          .collection('posts')
-          .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-          .get();
-
-      postLen = postSnap.docs.length;
-      userData = userSnap.data()!;
-      followers = userSnap.data()!['followers'].length;
-      following = userSnap.data()!['following'].length;
-      isFollowing = userSnap
-          .data()!['followers']
-          .contains(FirebaseAuth.instance.currentUser!.uid);
-      setState(() {});
-    } catch (e) {
-      showSnackBar(
-        context,
-        e.toString(),
-      );
-    }
-    setState(() {
-      isLoading = false;
-    });
-  }
 
   void signOut() async {
     showDialog(
@@ -86,9 +47,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? const LoadingScreen()
-        : Scaffold(
+    final currentUserUid = Provider.of<UserProvider>(context).getUser!.uid;
+
+    return FutureBuilder<
+            Tuple2<DocumentSnapshot<Map<String, dynamic>>,
+                QuerySnapshot<Map<String, dynamic>>>>(
+        future: Provider.of<BackendStreamsAndFuturesProvider>(context)
+            .getAllUserInfo(widget.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              !snapshot.hasData) {
+            return const LoadingScreen();
+          }
+          final userInfo = snapshot.data!.item1;
+          final userPosts = snapshot.data!.item2;
+          final postLen = userPosts.docs.length;
+          final userData = userInfo.data()!;
+          followers = userInfo.data()!['followers'].length;
+          final following = userInfo.data()!['following'].length;
+          isFollowing = userInfo.data()!['followers'].contains(currentUserUid);
+          return Scaffold(
             appBar: AppBar(
               backgroundColor: mobileBackgroundColor,
               title: Text(
@@ -129,8 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    FirebaseAuth.instance.currentUser!.uid ==
-                                            widget.uid
+                                    currentUserUid == widget.uid
                                         ? FollowButton(
                                             text: 'Sign Out',
                                             backgroundColor:
@@ -147,8 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 onPressed: () async {
                                                   await FireStoreMethods()
                                                       .followUser(
-                                                    FirebaseAuth.instance
-                                                        .currentUser!.uid,
+                                                    currentUserUid,
                                                     userData['uid'],
                                                   );
 
@@ -166,8 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 onPressed: () async {
                                                   await FireStoreMethods()
                                                       .followUser(
-                                                    FirebaseAuth.instance
-                                                        .currentUser!.uid,
+                                                    currentUserUid,
                                                     userData['uid'],
                                                   );
 
@@ -209,41 +184,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const Divider(),
-                FutureBuilder(
-                  future: FirebaseFirestore.instance
-                      .collection('posts')
-                      .where('uid', isEqualTo: widget.uid)
-                      .get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const LoadingScreen();
-                    }
-
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: (snapshot.data! as dynamic).docs.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 5,
-                        mainAxisSpacing: 1.5,
-                        childAspectRatio: 1,
-                      ),
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot snap =
-                            (snapshot.data! as dynamic).docs[index];
-
-                        return Image(
-                          image: NetworkImage(snap['postUrl']),
-                          fit: BoxFit.cover,
-                        );
-                      },
-                    );
-                  },
-                )
+                userPosts.docs.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          "no posts",
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : GridView.builder(
+                        shrinkWrap: true,
+                        itemCount: userPosts.docs.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 5,
+                          mainAxisSpacing: 1.5,
+                          childAspectRatio: 1,
+                        ),
+                        itemBuilder: (context, index) {
+                          DocumentSnapshot snap = userPosts.docs[index];
+                          return Image(
+                            image: NetworkImage(snap['postUrl']),
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      )
               ],
             ),
           );
+        });
   }
 
   Widget buildStatColumn(int num, String label) {

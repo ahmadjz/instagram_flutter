@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/screens/profile_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
 import 'package:instagram_flutter/utils/global_variable.dart';
 import 'package:instagram_flutter/widgets/loading_screen.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -47,10 +48,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget postsBuilder() {
     return FutureBuilder(
-      future: FirebaseFirestore.instance
-          .collection('posts')
-          .orderBy('datePublished')
-          .get(),
+      future: Provider.of<BackendStreamsAndFuturesProvider>(context)
+          .getAllPostsSortedByDate(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const LoadingScreen();
@@ -78,13 +77,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget usersBuilder() {
     return FutureBuilder(
-      future: FirebaseFirestore.instance
-          .collection('users')
-          .where(
-            'username',
-            isGreaterThanOrEqualTo: searchController.text,
-          )
-          .get(),
+      future: Provider.of<BackendStreamsAndFuturesProvider>(context)
+          .searchForUser(searchController.text),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const LoadingScreen();
