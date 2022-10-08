@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_flutter/models/user.dart';
+import 'package:instagram_flutter/models/user_model.dart';
 import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/providers/user_provider.dart';
 import 'package:instagram_flutter/resources/auth_methods.dart';
@@ -11,7 +10,6 @@ import 'package:instagram_flutter/widgets/are_you_sure_dialog.dart';
 import 'package:instagram_flutter/widgets/follow_button.dart';
 import 'package:instagram_flutter/widgets/loading_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
@@ -49,28 +47,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final currentUserUid = Provider.of<UserProvider>(context).getUser!.uid;
 
-    return FutureBuilder<
-            Tuple2<DocumentSnapshot<Map<String, dynamic>>,
-                QuerySnapshot<Map<String, dynamic>>>>(
+    return FutureBuilder<UserModel>(
         future: Provider.of<BackendStreamsAndFuturesProvider>(context)
-            .getAllUserInfo(widget.uid),
+            .getUserInfoAndPosts(widget.uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting ||
               !snapshot.hasData) {
             return const LoadingScreen();
           }
-          final userInfo = snapshot.data!.item1;
-          final userPosts = snapshot.data!.item2;
-          final postLen = userPosts.docs.length;
-          final userData = userInfo.data()!;
-          followers = userInfo.data()!['followers'].length;
-          final following = userInfo.data()!['following'].length;
-          isFollowing = userInfo.data()!['followers'].contains(currentUserUid);
+          final userPosts = snapshot.data!.posts;
+          final postLen = userPosts!.length;
+          final userData = snapshot.data!;
+          followers = userData.followers.length;
+          final following = userData.following.length;
+          isFollowing = userData.followers.contains(currentUserUid);
           return Scaffold(
             appBar: AppBar(
               backgroundColor: mobileBackgroundColor,
               title: Text(
-                userData['username'],
+                userData.username,
               ),
               centerTitle: false,
             ),
@@ -85,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           CircleAvatar(
                             backgroundColor: Colors.grey,
                             backgroundImage: NetworkImage(
-                              userData['photoUrl'],
+                              userData.photoUrl,
                             ),
                             radius: 40,
                           ),
@@ -125,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                   await FireStoreMethods()
                                                       .followUser(
                                                     currentUserUid,
-                                                    userData['uid'],
+                                                    userData.uid,
                                                   );
 
                                                   setState(() {
@@ -143,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                   await FireStoreMethods()
                                                       .followUser(
                                                     currentUserUid,
-                                                    userData['uid'],
+                                                    userData.uid,
                                                   );
 
                                                   setState(() {
@@ -165,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           top: 15,
                         ),
                         child: Text(
-                          userData['username'],
+                          userData.username,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
@@ -177,14 +172,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           top: 1,
                         ),
                         child: Text(
-                          userData['bio'],
+                          userData.bio,
                         ),
                       ),
                     ],
                   ),
                 ),
                 const Divider(),
-                userPosts.docs.isEmpty
+                userPosts.isEmpty
                     ? const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Text(
@@ -194,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       )
                     : GridView.builder(
                         shrinkWrap: true,
-                        itemCount: userPosts.docs.length,
+                        itemCount: userPosts.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
@@ -203,9 +198,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           childAspectRatio: 1,
                         ),
                         itemBuilder: (context, index) {
-                          DocumentSnapshot snap = userPosts.docs[index];
+                          final post = userPosts[index];
                           return Image(
-                            image: NetworkImage(snap['postUrl']),
+                            image: NetworkImage(post.postUrl),
                             fit: BoxFit.cover,
                           );
                         },

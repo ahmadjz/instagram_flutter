@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:instagram_flutter/models/post.dart';
 
-class User {
+class UserModel {
   final String email;
   final String uid;
   final String photoUrl;
@@ -8,9 +9,11 @@ class User {
   final String bio;
   final List followers;
   final List following;
+  final List<Post>? posts;
 
-  const User(
+  const UserModel(
       {required this.username,
+      this.posts,
       required this.uid,
       required this.photoUrl,
       required this.email,
@@ -18,9 +21,10 @@ class User {
       required this.followers,
       required this.following});
 
-  static User fromSnap(DocumentSnapshot snap) {
-    var snapshot = snap.data() as Map<String, dynamic>;
-    return User(
+  static UserModel fromSnap(
+      {required DocumentSnapshot user, List<Post>? posts}) {
+    var snapshot = user.data() as Map<String, dynamic>;
+    return UserModel(
       username: snapshot["username"],
       uid: snapshot["uid"],
       email: snapshot["email"],
@@ -28,6 +32,7 @@ class User {
       bio: snapshot["bio"],
       followers: snapshot["followers"],
       following: snapshot["following"],
+      posts: posts,
     );
   }
 

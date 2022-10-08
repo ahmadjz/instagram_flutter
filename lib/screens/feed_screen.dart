@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:instagram_flutter/models/post.dart';
 import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/utils/colors.dart';
 import 'package:instagram_flutter/utils/global_variable.dart';
@@ -43,25 +43,24 @@ class _FeedScreenState extends State<FeedScreen> {
                 ),
               ],
             ),
-      body: StreamBuilder(
+      body: StreamBuilder<Iterable<Post>>(
         stream: Provider.of<BackendStreamsAndFuturesProvider>(context)
             .streamAllPosts(),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: LoadingScreen(),
             );
           }
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (ctx, index) => Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: width > webScreenSize ? width * 0.3 : 0,
-                vertical: width > webScreenSize ? 15 : 0,
-              ),
-              child: PostCard(
-                snap: snapshot.data!.docs[index].data(),
+          return Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: width > webScreenSize ? width * 0.3 : 0,
+              vertical: width > webScreenSize ? 15 : 0,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children:
+                    snapshot.data!.map((post) => PostCard(post: post)).toList(),
               ),
             ),
           );

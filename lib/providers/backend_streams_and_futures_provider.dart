@@ -1,63 +1,79 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:tuple/tuple.dart';
+import 'package:instagram_flutter/models/comment.dart';
+import 'package:instagram_flutter/models/post.dart';
+import 'package:instagram_flutter/models/user_model.dart';
 
 class BackendStreamsAndFuturesProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> streamAllCommentsForPost(
-      String postId) {
-    return _firebaseFirestore
+  Stream<Iterable<Comment>> streamAllCommentsForPost(String postId) {
+    final snapshots = _firebaseFirestore
         .collection('posts')
         .doc(postId)
         .collection('comments')
         .snapshots();
+    final mappedData = snapshots
+        .asyncMap((event) => event.docs.map((e) => Comment.fromSnap(e)));
+    return mappedData;
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> streamAllPosts() {
-    return _firebaseFirestore.collection('posts').snapshots();
+  Stream<Iterable<Post>> streamAllPosts() {
+    final snapshots = _firebaseFirestore.collection('posts').snapshots();
+    final mappedData =
+        snapshots.asyncMap((event) => event.docs.map((e) => Post.fromSnap(e)));
+    return mappedData;
   }
 
-  Future<QuerySnapshot<Map<String, dynamic>>> searchForUser(String value) {
-    return _firebaseFirestore
+  Future<List<UserModel>> searchForUser(String value) async {
+    final snapshot = await _firebaseFirestore
         .collection('users')
         .where(
           'username',
           isGreaterThanOrEqualTo: value,
         )
         .get();
+    final List<UserModel> users =
+        snapshot.docs.map((user) => UserModel.fromSnap(user: user)).toList();
+    return users;
   }
 
-  Future<QuerySnapshot<Map<String, dynamic>>> getAllPostsSortedByDate() {
-    return _firebaseFirestore
+  Future<List<Post>> getAllPostsSortedByDate() async {
+    final snapshot = await _firebaseFirestore
         .collection('posts')
         .orderBy('datePublished')
         .get();
+    final List<Post> posts =
+        snapshot.docs.map((post) => Post.fromSnap(post)).toList();
+    return posts;
   }
 
-  // Future<DocumentSnapshot<Map<String, dynamic>>> getUserInfo(String userId) {
-  //   return _firebaseFirestore.collection('users').doc(userId).get();
-  // }
-
-  // Future<QuerySnapshot<Map<String, dynamic>>> getAllPostsForUser(
-  //     String userId) {
-  //   return _firebaseFirestore
-  //       .collection('posts')
-  //       .where('uid', isEqualTo: userId)
-  //       .get();
-  // }
-
-  Future<
-      Tuple2<DocumentSnapshot<Map<String, dynamic>>,
-          QuerySnapshot<Map<String, dynamic>>>> getAllUserInfo(
-      String userId) async {
-    final userInfo =
-        await _firebaseFirestore.collection('users').doc(userId).get();
-    final userPosts = await _firebaseFirestore
+  Future<List<Post>> getAllPostsForUid(String uid) async {
+    final snapshot = await _firebaseFirestore
         .collection('posts')
-        .where('uid', isEqualTo: userId)
+        .where('uid', isEqualTo: uid)
         .get();
+    final List<Post> posts =
+        snapshot.docs.map((post) => Post.fromSnap(post)).toList();
+    return posts;
+  }
 
-    return Tuple2(userInfo, userPosts);
+  Future<UserModel> getUserInfo(String uid) async {
+    final user = await _firebaseFirestore.collection('users').doc(uid).get();
+    return UserModel.fromSnap(user: user);
+  }
+
+  Future<UserModel> getUserInfoAndPosts(String uid) async {
+    final userInfo = await getUserInfo(uid);
+    final userPosts = await getAllPostsForUid(uid);
+
+    return UserModel(
+        username: userInfo.username,
+        uid: userInfo.uid,
+        photoUrl: userInfo.photoUrl,
+        email: userInfo.email,
+        bio: userInfo.bio,
+        followers: userInfo.followers,
+        following: userInfo.following,
+        posts: userPosts);
   }
 }

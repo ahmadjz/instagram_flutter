@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:instagram_flutter/models/post.dart';
 import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/screens/profile_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
@@ -47,7 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget postsBuilder() {
-    return FutureBuilder(
+    return FutureBuilder<List<Post>>(
       future: Provider.of<BackendStreamsAndFuturesProvider>(context)
           .getAllPostsSortedByDate(),
       builder: (context, snapshot) {
@@ -57,9 +58,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
         return StaggeredGridView.countBuilder(
           crossAxisCount: 3,
-          itemCount: (snapshot.data! as dynamic).docs.length,
+          itemCount: snapshot.data!.length,
           itemBuilder: (context, index) => Image.network(
-            (snapshot.data! as dynamic).docs[index]['postUrl'],
+            snapshot.data![index].postUrl,
             fit: BoxFit.cover,
           ),
           staggeredTileBuilder: (index) =>

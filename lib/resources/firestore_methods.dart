@@ -26,7 +26,7 @@ class FireStoreMethods {
         postUrl: photoUrl,
         profImage: profImage,
       );
-      _firestore.collection('posts').doc(postId).set(post.toJson());
+      _firestore.collection('posts').doc(postId).set(post.toMap());
       res = "success";
     } catch (err) {
       res = err.toString();

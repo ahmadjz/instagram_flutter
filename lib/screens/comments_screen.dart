@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_flutter/models/user.dart';
+import 'package:instagram_flutter/models/comment.dart';
+import 'package:instagram_flutter/models/user_model.dart';
 import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/providers/user_provider.dart';
 import 'package:instagram_flutter/resources/firestore_methods.dart';
@@ -48,7 +48,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final User? user = Provider.of<UserProvider>(context).getUser;
+    final UserModel? user = Provider.of<UserProvider>(context).getUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -58,26 +58,24 @@ class _CommentsScreenState extends State<CommentsScreen> {
         ),
         centerTitle: false,
       ),
-      body: StreamBuilder(
+      body: StreamBuilder<Iterable<Comment>>(
         stream: Provider.of<BackendStreamsAndFuturesProvider>(context)
             .streamAllCommentsForPost(widget.postId),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
-
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (ctx, index) => CommentCard(
-              snap: snapshot.data!.docs[index],
+          return SingleChildScrollView(
+            child: Column(
+              children: snapshot.data!
+                  .map((comment) => CommentCard(comment: comment))
+                  .toList(),
             ),
           );
         },
       ),
-      // text input
       bottomNavigationBar: SafeArea(
         child: Container(
           height: kToolbarHeight,

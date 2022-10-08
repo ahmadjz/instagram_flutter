@@ -21,21 +21,21 @@ class Post {
     required this.profImage,
   });
 
-  static Post fromSnap(DocumentSnapshot snap) {
-    var snapshot = snap.data() as Map<String, dynamic>;
+  static Post fromSnap(QueryDocumentSnapshot<Map<String, dynamic>> snap) {
+    var snapshot = snap.data();
 
     return Post(
         description: snapshot["description"],
         uid: snapshot["uid"],
         likes: snapshot["likes"],
         postId: snapshot["postId"],
-        datePublished: snapshot["datePublished"],
+        datePublished: (snapshot["datePublished"] as Timestamp).toDate(),
         username: snapshot["username"],
         postUrl: snapshot['postUrl'],
         profImage: snapshot['profImage']);
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toMap() => {
         "description": description,
         "uid": uid,
         "likes": likes,
