@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:instagram_flutter/models/post.dart';
+import 'package:instagram_flutter/models/user_model.dart';
 import 'package:instagram_flutter/providers/backend_streams_and_futures_provider.dart';
 import 'package:instagram_flutter/screens/profile_screen.dart';
 import 'package:instagram_flutter/utils/colors.dart';
@@ -77,7 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget usersBuilder() {
-    return FutureBuilder(
+    return FutureBuilder<List<UserModel>>(
       future: Provider.of<BackendStreamsAndFuturesProvider>(context)
           .searchForUser(searchController.text),
       builder: (context, snapshot) {
@@ -88,25 +89,25 @@ class _SearchScreenState extends State<SearchScreen> {
           return const LoadingScreen();
         }
         return ListView.builder(
-          itemCount: (snapshot.data! as dynamic).docs.length,
+          itemCount: snapshot.data!.length,
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => ProfileScreen(
-                    uid: (snapshot.data! as dynamic).docs[index]['uid'],
+                    uid: snapshot.data![index].uid,
                   ),
                 ),
               ),
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(
-                    (snapshot.data! as dynamic).docs[index]['photoUrl'],
+                    snapshot.data![index].photoUrl,
                   ),
                   radius: 16,
                 ),
                 title: Text(
-                  (snapshot.data! as dynamic).docs[index]['username'],
+                  snapshot.data![index].username,
                 ),
               ),
             );
