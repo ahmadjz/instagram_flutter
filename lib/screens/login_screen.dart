@@ -20,13 +20,17 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
   bool _isLoading = false;
 
   @override
   void dispose() {
     super.dispose();
     _emailController.dispose();
+    _emailFocusNode.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
   }
 
   void loginUser() async {
@@ -82,12 +86,17 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             TextFieldInput(
                 hintText: "Enter your Email",
+                focusNode: _emailFocusNode,
+                onEditingComplete: () =>
+                    FocusScope.of(context).requestFocus(_passwordFocusNode),
                 textEditingController: _emailController,
                 textInputType: TextInputType.emailAddress),
             const SizedBox(
               height: 24,
             ),
             TextFieldInput(
+              focusNode: _passwordFocusNode,
+              onEditingComplete: loginUser,
               hintText: "Enter your password",
               textEditingController: _passwordController,
               textInputType: TextInputType.text,

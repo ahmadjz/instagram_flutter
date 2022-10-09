@@ -25,6 +25,10 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final FocusNode _usernameFocusNode = FocusNode();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+  final FocusNode _bioFocusNode = FocusNode();
   bool _isLoading = false;
   Uint8List? _image;
 
@@ -32,8 +36,28 @@ class _SignupScreenState extends State<SignupScreen> {
   void dispose() {
     super.dispose();
     _emailController.dispose();
+    _emailFocusNode.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     _usernameController.dispose();
+    _usernameFocusNode.dispose();
+    _bioController.dispose();
+    _bioFocusNode.dispose();
+  }
+
+  void signUpValidation() async {
+    if (_image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select an Image")));
+    } else if (_usernameController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _bioController.text.isNotEmpty) {
+      signUpUser();
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Fields can't be empty")));
+    }
   }
 
   void signUpUser() async {
@@ -75,6 +99,26 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() {
       _image = im;
     });
+  }
+
+  void onEditingComplete(String currentFocus) {
+    switch (currentFocus) {
+      case 'username':
+        {
+          FocusScope.of(context).requestFocus(_emailFocusNode);
+        }
+        break;
+      case 'email':
+        {
+          FocusScope.of(context).requestFocus(_passwordFocusNode);
+        }
+        break;
+      case 'password':
+        {
+          FocusScope.of(context).requestFocus(_bioFocusNode);
+        }
+        break;
+    }
   }
 
   @override
@@ -128,6 +172,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 TextFieldInput(
                   hintText: 'Enter your username',
+                  focusNode: _usernameFocusNode,
+                  onEditingComplete: () => onEditingComplete('username'),
                   textInputType: TextInputType.text,
                   textEditingController: _usernameController,
                 ),
@@ -135,6 +181,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   height: 24,
                 ),
                 TextFieldInput(
+                  focusNode: _emailFocusNode,
+                  onEditingComplete: () => onEditingComplete('email'),
                   hintText: 'Enter your email',
                   textInputType: TextInputType.emailAddress,
                   textEditingController: _emailController,
@@ -144,6 +192,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 TextFieldInput(
                   hintText: 'Enter your password',
+                  focusNode: _passwordFocusNode,
+                  onEditingComplete: () => onEditingComplete('password'),
                   textInputType: TextInputType.text,
                   textEditingController: _passwordController,
                   isPass: true,
@@ -153,6 +203,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 TextFieldInput(
                   hintText: 'Enter your bio',
+                  focusNode: _bioFocusNode,
+                  onEditingComplete: signUpValidation,
                   textInputType: TextInputType.text,
                   textEditingController: _bioController,
                 ),
@@ -160,6 +212,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   height: 24,
                 ),
                 InkWell(
+                  onTap: signUpValidation,
                   child: Container(
                     width: double.infinity,
                     alignment: Alignment.center,
@@ -176,20 +229,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           )
                         : const LoadingScreen(),
                   ),
-                  onTap: () {
-                    if (_image == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("Please select an Image")));
-                    } else if (_usernameController.text.isNotEmpty &&
-                        _emailController.text.isNotEmpty &&
-                        _passwordController.text.isNotEmpty &&
-                        _bioController.text.isNotEmpty) {
-                      signUpUser();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("Fields can't be empty")));
-                    }
-                  },
                 ),
                 const SizedBox(
                   height: 64,

@@ -4,10 +4,14 @@ class TextFieldInput extends StatelessWidget {
   final TextEditingController textEditingController;
   final bool isPass;
   final String hintText;
+  final VoidCallback? onEditingComplete;
   final TextInputType textInputType;
+  final FocusNode? focusNode;
   const TextFieldInput(
       {super.key,
+      this.focusNode,
       required this.hintText,
+      this.onEditingComplete,
       this.isPass = false,
       required this.textEditingController,
       required this.textInputType});
@@ -18,6 +22,7 @@ class TextFieldInput extends StatelessWidget {
       borderSide: Divider.createBorderSide(context),
     );
     return TextField(
+      focusNode: focusNode,
       controller: textEditingController,
       decoration: InputDecoration(
         hintText: hintText,
@@ -28,6 +33,7 @@ class TextFieldInput extends StatelessWidget {
       ),
       keyboardType: textInputType,
       obscureText: isPass,
+      onEditingComplete: onEditingComplete,
     );
   }
 }
