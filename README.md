@@ -33,7 +33,7 @@ Instagram Clone (Both frontend and backend) created with Flutter and Firebase.
 Screen for the dataBase 
 
 
-### Video of the app
+### Videos
 
 [Mobile Screen](https://drive.google.com/file/d/1Zr2aYPpZiUZPBAiqVLAhdzU8oHc5kCIZ/view?usp=sharing) <br>
 [Wide Screen](https://drive.google.com/file/d/19-dazJNS1Xrq6GVIdDFjpE1Z-tTou7XZ/view?usp=sharing)
